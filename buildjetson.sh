@@ -2,10 +2,15 @@
 
 # Used by wrapper script
 export SYSROOT=$HOME/sysroot-jetson
+export TOOLCHAIN_PATH=/home/marcus/x-tools/aarch64-jetsonnano-linux-gnu
+export TOOLCHAIN_PREFIX=aarch64-jetsonnano-linux-gnu-
+
+# Make sure toolchain is found in path!
+export PATH=$TOOLCHAIN_PATH/bin:$PATH
 
 # Select correct linker
-export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_AR=aarch64-linux-gnu-ar
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=${TOOLCHAIN_PREFIX}gcc
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_AR=${TOOLCHAIN_PREFIX}ar
 
 # Add rpath-link arguments to rustflags
 # Note: rpath-link must come before sysroot
@@ -26,13 +31,13 @@ done
 rustflags="${rustflags:1}"
 
 # Add Sysroot flag. MUST BE AFTER rpath-link SETTINGS!!!
-rustflags="$rustflags -C link-args=-Wl,--sysroot=$SYSROOT"
+# rustflags="$rustflags -C link-args=-Wl,--sysroot=$SYSROOT"
 
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS="$rustflags"
 
 # Ensures OpenCV builds with right compiler
-export CC=aarch64-linux-gnu-gcc
-export CXX=aarch64-linux-gnu-gcc
+export CC=${TOOLCHAIN_PREFIX}gcc
+export CXX=${TOOLCHAIN_PREFIX}g++
 
 # Ensures correct OpenCV found (using Cmake search method)
 lib_array=($SYSROOT/opt/opencv-4.6.0/lib/*.so)
