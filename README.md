@@ -9,9 +9,16 @@ Intended to be an alternative to building in a docker container or chroot using 
 TODO
 
 
-## Making Toolchain
+## Making Toolchain (Linux AMD64 host)
 
-TODO
+TODO: Build process
+
+Finally, package it
+
+```sh
+tar -cvf toolchain-jetson-linux-amd64.tar *
+xz -z -T0 -v toolchain-jetson-linux-amd64.tar
+```
 
 
 ## Making Sysroot
@@ -71,12 +78,8 @@ sudo umount -R $jetsonroot
 Then, pack an archive of the sysroot. The sysroot will probably be quite large (CUDA is very large), so compression may take a little while.
 
 ```sh
-# Currently, only usr and opt are included in sysroot
-# If other top level directories are added, include them too though!
-tar -cvf sysroot.tar usr/ opt/
-
-# xz will yield much better compression, but gzip will be faster
-xz -z -T0 -v sysroot.tar
+tar -cvf sysroot-jetson.tar *
+xz -z -T0 -v sysroot-jetson.tar
 ```
 
 
