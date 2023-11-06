@@ -98,5 +98,9 @@ while read lnew; do
 done <<< "$(find "$destdir" -type l)"
 echo ""
 
+# Make expected links (not always needed in sysroot, but some things hard code paths)
+# This includes the build process for gcc compiler.
+ln -sf usr/lib/ "$destdir/lib"
+
 # Done. No cleanup necessary.
 echo "Sysroot created."
