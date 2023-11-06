@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Used by wrapper script
-export SYSROOT=$HOME/sysroot
+export SYSROOT=$HOME/sysroot-jetson
 
 # Select correct linker
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
