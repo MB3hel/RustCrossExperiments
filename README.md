@@ -9,18 +9,6 @@ Intended to be an alternative to building in a docker container or chroot using 
 TODO
 
 
-## Making Toolchain (Linux AMD64 host)
-
-TODO: Build process
-
-Finally, package it
-
-```sh
-tar -cvf toolchain-jetson-linux-amd64.tar *
-xz -z -T0 -v toolchain-jetson-linux-amd64.tar
-```
-
-
 ## Making Sysroot
 
 Assuming you have a Jetson nano os image named `jetson.img`.
@@ -82,6 +70,31 @@ tar -cvf sysroot-jetson.tar *
 xz -z -T0 -v sysroot-jetson.tar
 ```
 
+
+## Making Toolchain (Linux AMD64 host)
+
+You must have a sysroot first. Change versions to match what is used on your target OS.
+
+```sh
+tcbuild=$HOME/toolchain-jetson-build
+tcdest=$HOME/toolchain-jetson-linux-amd64
+sysrootdir=$HOME/sysroot-jetson
+
+mkdir -p $tcbuild
+mkdir -p $tcdest
+cp make-cross-toolchain/tc*.sh $tcbuild
+cd $tcbuild
+BINUTILS_VER=2.34 SYSROOT=$sysrootdir TOOLCHAIN_DIR=$tcdest ./tc-build-binutils.sh
+GCC_VER=9.4.0 SYSROOT=$sysrootdir TOOLCHAIN_DIR=$tcdest ./tc-build-gcc.sh
+```
+
+Finally, package it
+
+```sh
+cd $tcdest
+tar -cvf toolchain-jetson-linux-amd64.tar *
+xz -z -T0 -v toolchain-jetson-linux-amd64.tar
+```
 
 ## Non-Linux host systems
 

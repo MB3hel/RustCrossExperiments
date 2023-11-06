@@ -2,7 +2,11 @@
 
 set -e
 
-GCC_VER=9.4.0
+if [ -z "$GCC_VER" ]; then
+    echo "Must set GCC_VER"
+    exit 1
+fi
+
 GCC_NAME=gcc-${GCC_VER}
 GCC_FILE=${GCC_NAME}.tar.xz
 

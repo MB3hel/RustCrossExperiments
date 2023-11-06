@@ -2,7 +2,11 @@
 
 set -e
 
-BINUTILS_VER=2.34
+if [ -z "$BINUTILS_VER" ]; then
+    echo "Must set BINUTILS_VER"
+    exit 1
+fi
+
 BINUTILS_NAME=binutils-${BINUTILS_VER}
 BINUTILS_FILE=${BINUTILS_NAME}.tar.bz2
 
