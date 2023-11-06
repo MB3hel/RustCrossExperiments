@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Used by wrapper script
-export SYSROOT=$HOME/jetsonroot
+export SYSROOT=$HOME/sysroot
 
 # Select correct linker
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
@@ -15,17 +15,9 @@ lib_search_paths=(
     $SYSROOT/lib/aarch64-linux-gnu/
     $SYSROOT/usr/local/lib/aarch64-linux-gnu/
     $SYSROOT/usr/local/cuda-10.2/targets/aarch64-linux/lib/
-    $SYSROOT/opt/opencv-4.6.0/lib/
 
-    # Some subdirectories are needed b/c these are in /usr/lib/aarch64-linux-gnu/
-    # by symlinks (absolute) which don't work in the sysroot!
-    # May need to add to these if adding libraries that work this way
-    # Essentially, if it uses debian's update-alternatives thing, it's symlinked
-    # TODO: Determine if there's a way to rewrite to relative symlinks
-    #       when creating sysroot
-    $SYSROOT/usr/lib/aarch64-linux-gnu/tegra/
-    $SYSROOT/usr/lib/aarch64-linux-gnu/lapack/
-    $SYSROOT/usr/lib/aarch64-linux-gnu/blas/
+    # Custom build of OpenCV is installed here
+    $SYSROOT/opt/opencv-4.6.0/lib/
 )
 rustflags=""
 for path in "${lib_search_paths[@]}"; do
