@@ -38,27 +38,13 @@ fi
 #     "/usr/" "$destdir/usr/"
 # rsync -a "/opt/" "$destdir/opt/"
 
-# Copy symlinked libraries to the expected location
-basefiles=()
-while read f; do
-    if [ -L "$f" ] && [ -f "$f" ]; then
-        r=$(readlink -f "$f")
-        # rm -f "$f"
-        # cp "$r" "$f"
-        fdir="$(dirname \"$f\")"
-        rdir="$(dirname \"$r\")"
-        fidr=${fdir#"$destdir"}
-        rdir=${rdir#"$destdir"}
-        if [ ! "$fdir" -ef "$rdir" ]; then
-            echo "$fdir"
-            echo "$rdir"
-            echo ""
-        fi 
-        basefiles+=("$f")
-    fi
-done <<< "$(find "$destdir/usr/lib/aarch64-linux-gnu/" -name "*.so*")"
-
-# Delete all the base files (symlinked into a higher up directory)
-# These shouldn't be needed by anything since these files are now in /usr/lib/aarch64-linux-gnu/
-# which should be searched first anyway, but who knows. It could break something
-# But it drastically reduces sysroot size, so until something doesn't like it...
+# Convert links to all be relative
+# This ensures that symlinks work outside of chroot environment
+# It also replaces hard links with symlinks
+# TODO: Untested
+while read l; do
+    tabs="$(realpath "$l")"
+    trel="$(realpath --relative-to="$(dirname "$(realpath -s "$l")")" "$target")"
+    echo "$l -> $trel"
+    # ln -sf "$trel" "$l"
+done <<< "$(find "$destdir" -type l)"
