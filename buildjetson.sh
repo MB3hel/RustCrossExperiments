@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 ################################################################################
 # Setup
@@ -11,42 +11,22 @@
 ################################################################################
 # Flags passed to clang
 ################################################################################
-# Passed to everything (clang, clang++, linker, rustflags as link-args)
-SHARED_FLAGS_ARR=(
-    # Tells clang to compile for aarch64 linux
-    -target
-    aarch64-linux-gnu
-
-    # Jetson Nano CPU
-    -mcpu=cortex-a57
-
-    # Tells clang to link with lld, which also supports -target aarch64-linux-gnu
-    -fuse-ld=lld
-
-    # Sysroot containing aarch64-linux-gnu libraries to link against
-    --sysroot=$JETSON_SYSROOT
-
-    # CUDA libraries are here in sysroot from jetson
-    -L$JETSON_SYSROOT/usr/local/cuda-10.2/targets/aarch64-linux/lib/
-
-    # Custom build of OpenCV is installed here on jetson sysroot
-    -L$JETSON_SYSROOT/opt/opencv-4.6.0/lib/
-)
+# Passed to everything (c, c++, linker)
+shared_flags="-target aarch64-linux-gnu"                                                            # Tells clang to compile for aarch64 linux
+shared_flags="$shared_flags -mcpu=cortex-a57"                                                       # Jetson CPU
+shared_flags="$shared_flags -fuse-ld=lld"                                                           # Use lld b/c it supports -target
+shared_flags="$shared_flags --sysroot=$JETSON_SYSROOT"                                              # Specify sysroot
+shared_flags="$shared_flags -L$JETSON_SYSROOT/usr/local/cuda-10.2/targets/aarch64-linux/lib/"       # CUDA is here on jetson sysroot
+shared_flags="$shared_flags -L$JETSON_SYSROOT/opt/opencv-4.6.0/lib/"                                # Custom OpenCV is here on jetson sysroot
 
 # Only to clang to compile C code
-CFLAGS_ARR=(
-    ${SHARED_FLAGS_ARR[@]}
-)
+cflags="$shared_flags"
 
 # Only to clant++ to compile C++ code
-CXXFLAGS_ARR=(
-    ${SHARED_FLAGS_ARR[@]}
-)
+cxxflags="$shared_flags"
 
-# To linker
-LDFLAGS_ARR=(
-    ${SHARED_FLAGS_ARR[@]}
-)
+# To linker (and rustflags as link-args)
+ldflags="$shared_flags"
 ################################################################################
 
 
@@ -57,9 +37,9 @@ LDFLAGS_ARR=(
 export CC=clang
 export CXX=clang++
 export AR=llvm-ar
-export CFLAGS="$(IFS=" "; echo "${CFLAGS_ARR[*]}")"
-export CXXFLAGS="$(IFS=" "; echo "${CXXFLAGS_ARR[*]}")"
-export LDFLAGS="$(IFS=" "; echo "${LDFLAGS_ARR[*]}")"
+export CFLAGS="$cflags"
+export CXXFLAGS="$cxxflags"
+export LDFLAGS="$ldflags"
 # Note: For C/C++ built by CMake, may need CMAKE_TOOLCHAIN_FILE variable
 # and a custom toolchain file. Maybe not. It may respect these vars too.
 ################################################################################
@@ -71,10 +51,10 @@ export LDFLAGS="$(IFS=" "; echo "${LDFLAGS_ARR[*]}")"
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=clang
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_AR=llvm-ar
 CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS=""
-for arg in "${SHARED_FLAGS_ARR[@]}"; do
+for arg in $(echo $ldflags | sed 's/ /\n/g'); do
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS="$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS -C link-args=$arg"
 done
-CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS="${CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS:1}"
+CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS="${CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS#?}"
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS
 ################################################################################
 
@@ -83,13 +63,15 @@ export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS
 # OpenCV stuff
 ################################################################################
 # Ensures correct OpenCV found (using environment var search method)
-lib_array=($JETSON_SYSROOT/opt/opencv-4.6.0/lib/*.so)
-for i in "${!lib_array[@]}"; do
-    lib_name=$(basename ${lib_array[$i]} .so)
-    lib_name=${lib_name#"lib"}
-    lib_array[$i]=$lib_name
+OPENCV_LINK_LIBS=""
+for lib in $(find $JETSON_SYSROOT/opt/opencv-4.6.0/lib/ -name "*.so" -maxdepth 1); do
+    lib_name=$(basename $lib)
+    lib_name=${lib_name#???}        # Remove first 3 chars ("lib")
+    lib_name=${lib_name%???}        # Remove final 3 chars (".so")
+    OPENCV_LINK_LIBS="$OPENCV_LINK_LIBS,$lib_name"
 done
-export OPENCV_LINK_LIBS="$(IFS=,; echo "${lib_array[*]}")"
+OPENCV_LINK_LIBS="${OPENCV_LINK_LIBS#?}"
+export OPENCV_LINK_LIBS
 export OPENCV_LINK_PATHS="$JETSON_SYSROOT/opt/opencv-4.6.0/lib/"
 export OPENCV_INCLUDE_PATHS="$JETSON_SYSROOT/opt/opencv-4.6.0/include/opencv4"
 export OPENCV_DISABLE_PROBES="pkg_config,cmake,vcpkg_cmake,vcpkg"
