@@ -56,6 +56,7 @@ LDFLAGS_ARR=(
 # Make sure any C/C++ code built by crates uses right compilers / flags
 export CC=clang
 export CXX=clang++
+export AR=llvm-ar
 export CFLAGS="$(IFS=" "; echo "${CFLAGS_ARR[*]}")"
 export CXXFLAGS="$(IFS=" "; echo "${CXXFLAGS_ARR[*]}")"
 export LDFLAGS="$(IFS=" "; echo "${LDFLAGS_ARR[*]}")"
