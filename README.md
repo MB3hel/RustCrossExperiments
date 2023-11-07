@@ -44,9 +44,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 A sysroot for the target system is also required (any OS). This provides headers and libraries for the target system. See instructions below on making a sysroot from a OS image if you don't have one already.
 
-It is assumed that the sysroot is a compressed tar archive (likely `.tar.xz`). On windows, run in busybox sh. It is recommended to extract to `$HOME/sysroot-jetson` on all systems. If extracting somewhere else, you will need to set the JETSON_SYSROOT environment variable.
+It is assumed that the sysroot is a compressed tar archive (likely `.tar.xz`). It is recommended to extract to `$HOME/sysroot-jetson` on all systems. If extracting somewhere else, you will need to set the JETSON_SYSROOT environment variable.
 
 ```sh
+# On windows, run in busybox sh
 # WARNING: This first command deletes $HOME/sysroot-jetson if it exists!
 rm -rf $HOME/sysroot-jetson
 mkdir $HOME/sysroot-jetson
@@ -57,10 +58,10 @@ tar -xvf sysroot-jetson.tar.xz -C $HOME/sysroot-jetson
 
 ```sh
 # Clean old builds for jetson
-./cleanjetson.sh
+./cargojetson.sh clean
 
 # Perform the build
-./buildjetson.sh
+./cargojetson.sh build
 ```
 
 Resultant binary will be `target-jetson/aarch64-unknown-linux-gnu/debug/opencv_test`.
@@ -90,61 +91,26 @@ How it works:
 
 ## Making Sysroot
 
-Assuming you have a Jetson nano os image named `jetson.img`.
+**Must do this on a Linux system!**
 
-Mount the image and setup for chroot
+A sysroot can be made from an OS image / install / debootstrap for the target system. Usually for the jetson, you will have an OS image or an SD card. You need to mount the root filesystem (image sd card, etc) to some folder on your computer. Here it is assumed to be mounted at `/mnt/jetsonroot`.
+
+Make a folder to create the chroot in (`$HOME/sysroot-jetson` is used here).
 
 ```sh
-jetsonroot=/mnt/jetsonroot
-
-loopdev=`sudo losetup -f -P --show jetson.img`
-sudo mkdir $jetsonroot
-sudo mount ${loopdev}p1 $jetsonroot
-
-sudo mount --rbind /dev $jetsonroot/dev
-sudo mount --make-rslave $jetsonroot/dev
-sudo mount --bind /sys $jetsonroot/sys
-sudo mount --bind /proc $jetsonroot/proc
+mkdir -p $HOME/sysroot-jetson
 ```
 
-Make a folder on the host  accessible on the chroot as `/mnt/sysroot`
+Run the make sysroot script
 
 ```sh
-sysrootdest=$HOME/sysroot
-mkdir $sysrootdest
-mkdir $jetsonroot/mnt/sysroot
-sudo mount --bind $sysrootdest $jetsonroot/mnt/sysroot
+sudo cp make-sysroot.sh /mnt/jetsonroot $HOME/sysroot-jetson
 ```
 
-Copy the convert-to-sysroot script to the chroot
+Then, pack an archive of the sysroot.
 
 ```sh
-sudo cp convert-to-sysroot.sh $jetsonroot/root/
-```
-
-Enter the chroot and run the script. This script will copy necessary files, fix symlinks to be relative (so they are useable in a portable sysroot), the report any broken links remaining (many of these won't need to be fixed because they linked to things that were intentionally omitted or they were broken to begin with).
-
-```sh
-# Make sure qemu-user-static is installed first if your system isn't aarch64
-sudo chroot $jetsonroot
-
-# Now in chroot
-cd /root
-./convert-to-sysroot.sh /mnt/sysroot
-
-# Once script is done, exit chroot
-exit
-```
-
-The sysroot folder is now available on your host system. You can unmount jetson image now.
-
-```sh
-sudo umount -R $jetsonroot
-```
-
-Then, pack an archive of the sysroot. The sysroot will probably be quite large (CUDA is very large), so compression may take a little while.
-
-```sh
+cd $HOME/sysroot-jetson
 tar -cvf sysroot-jetson.tar *
 xz -z -T0 -v sysroot-jetson.tar
 ```
