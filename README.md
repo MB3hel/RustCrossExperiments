@@ -73,12 +73,19 @@ xz -z -T0 -v sysroot-jetson.tar
 
 ## Making Toolchain (Linux AMD64 host)
 
-You must have a sysroot first. Change versions to match what is used on your target OS.
+*Note: Build in a chroot for a system with same (or older) GCC, GLIBC, and BINUTILS version to your target. Minimizes risk of not being able to build GCC. Generally, a version of GCC can build the same version of GCC without issues (also usually ok to build GCC x with a few versions older than x). Tested in Ubuntu 20.04 chroot. Also note that system you build on defines glibc compatibility of generated binaries. Could build on 18.04 if older glibc compat is necessary.*
+
+You must have a sysroot first.
+
+Change versions to match what is used on your target OS.
 
 ```sh
 tcbuild=$HOME/toolchain-jetson-build
 tcdest=$HOME/toolchain-jetson-linux-amd64
 sysrootdir=$HOME/sysroot-jetson
+
+# Change for non-debian based build system
+sudo apt-get install -y build-essential texinfo
 
 mkdir -p $tcbuild
 mkdir -p $tcdest

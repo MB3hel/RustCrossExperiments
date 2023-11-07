@@ -51,4 +51,4 @@ cd gcc-build
     --with-gnu-ld \
     --with-sysroot=$SYSROOT
 make -j4 all
-make install
+make install-strip
