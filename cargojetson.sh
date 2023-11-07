@@ -82,5 +82,5 @@ export OPENCV_DISABLE_PROBES="pkg_config,cmake,vcpkg_cmake,vcpkg"
 # Run the build
 ################################################################################
 rustup target add aarch64-unknown-linux-gnu
-cargo build --target aarch64-unknown-linux-gnu --target-dir target-jetson
+cargo "$@" --target aarch64-unknown-linux-gnu --target-dir target-jetson
 ################################################################################
