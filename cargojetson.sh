@@ -5,6 +5,11 @@
 ################################################################################
 # Default value if not specified via env var
 [ -z "$JETSON_SYSROOT" ] && JETSON_SYSROOT=$HOME/sysroot-jetson
+
+if [ ! -d "$JETSON_SYSROOT" ]; then
+    echo "Sysroot $JETSON_SYSROOT does not exist. Specify using JETSON_SYSROOT variable."
+    exit 1
+fi
 ################################################################################
 
 
@@ -34,14 +39,15 @@ ldflags="$shared_flags"
 # Environment setup
 ################################################################################
 # Make sure any C/C++ code built by crates uses right compilers / flags
-export CC=clang
-export CXX=clang++
-export AR=llvm-ar
-export CFLAGS="$cflags"
-export CXXFLAGS="$cxxflags"
-export LDFLAGS="$ldflags"
-# Note: For C/C++ built by CMake, may need CMAKE_TOOLCHAIN_FILE variable
-# and a custom toolchain file. Maybe not. It may respect these vars too.
+# Note: Using triple specific vars so that tools built for build system as a
+# part of the build process build as intended.
+# Note that these should have target triple lower case unlike vars for cargo
+export CC_aarch64_unknown_linux_gnu=clang
+export CXX_aarch64_unknown_linux_gnu=clang++
+export AR_aarch64_unknown_linux_gnu=llvm-ar
+export CFLAGS_aarch64_unknown_linux_gnu="$cflags"
+export CXXFLAGS_aarch64_unknown_linux_gnu="$cxxflags"
+export LDFLAGS_aarch64_unknown_linux_gnu="$ldflags"
 ################################################################################
 
 
@@ -64,7 +70,7 @@ export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS
 ################################################################################
 # Ensures correct OpenCV found (using environment var search method)
 OPENCV_LINK_LIBS=""
-for lib in $(find $JETSON_SYSROOT/opt/opencv-4.6.0/lib/ -name "*.so" -maxdepth 1); do
+for lib in $(find $JETSON_SYSROOT/opt/opencv-4.6.0/lib/ -maxdepth 1 -name "*.so"); do
     lib_name=$(basename $lib)
     lib_name=${lib_name#???}        # Remove first 3 chars ("lib")
     lib_name=${lib_name%???}        # Remove final 3 chars (".so")
