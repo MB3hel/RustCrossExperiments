@@ -12,8 +12,8 @@ Install on windows using [scoop](https://scoop.sh/)
 
 ```sh
 # llvm provides clang and lld
-# Busybox provides posix compatible sh
-scoop install llvm rustup busybox
+# Busybox provides posix compatible sh (run with "busybox sh")
+scoop install llvm rustup busybox-lean
 
 # Install rust using rustup-init
 curl -L https://win.rustup.rs/x86_64 -o rustup-init.exe
