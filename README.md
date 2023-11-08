@@ -20,13 +20,16 @@ curl -L https://win.rustup.rs/x86_64 -o rustup-init.exe
 .\rustup-init.exe
 ```
 
-Install on macOS using
+Install on macOS using [brew](https://brew.sh)
 
 ```sh
-# clang and lld should be available on macos by default
-# May need to install xcode developer tools though using xcode-select --install
-# And a posix shell exists (dash, bash, zsh)
-# So just need to install rust 
+# Using Apple Clang (comes with Xcode / command line developer tools)
+# WILL NOT WORK! Does not included lld (used to link) and has
+# hard to fix issues with finding libclang. Instead
+# use brew to install normal llvm clang
+brew install llvm
+
+# Install rust using rustup init script
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
@@ -55,6 +58,16 @@ tar -xvf sysroot-jetson.tar.xz -C $HOME/sysroot-jetson
 ```
 
 ## Building for Jetson
+
+On macos, first run the following to build with llvm clang (installed using brew) instead of apple's clang
+
+```sh
+# ONLY ON MACOS
+export PATH="/usr/local/opt/llvm/bin:$PATH"
+```
+
+
+On Windows, macOS, or Linux run the following (run in busybox sh on windows)
 
 ```sh
 # Clean old builds for jetson
